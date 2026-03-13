@@ -1,4 +1,4 @@
-name: Build and Push NUERA ComfyUI Image
+name: Build and Push NUERA ComfyUI v2
 
 on:
   push:
@@ -13,7 +13,16 @@ jobs:
     timeout-minutes: 60
 
     steps:
-      - name: Checkout repository
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf /usr/local/share/boost
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo docker rmi $(docker image ls -aq) 2>/dev/null || true
+          df -h
+
+      - name: Checkout
         uses: actions/checkout@v4
 
       - name: Set up Docker Buildx
@@ -25,13 +34,13 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and Push
         uses: docker/build-push-action@v5
         with:
           context: .
           push: true
           tags: |
+            dreamroca/nuera-comfyui:v2
             dreamroca/nuera-comfyui:latest
-            dreamroca/nuera-comfyui:v1
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
+          platforms: linux/amd64
+          no-cache: true
