@@ -6,9 +6,9 @@ RUN comfy-node-install comfyui_ipadapter_plus
 # Step 2: Set HF token THEN download JuggernautXL
 ARG HF_TOKEN
 RUN comfy model download --set-hf-api-token ${HF_TOKEN} \
-  --url https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/juggernautXL_v11.safetensors \
+  --url https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/Juggernaut-XI-byRunDiffusion.safetensors \
   --relative-path models/checkpoints \
-  --filename juggernautXL_v11.safetensors
+  --filename Juggernaut-XI-byRunDiffusion.safetensors
 
 # Step 3: IP-Adapter FaceID model (no auth needed)
 RUN comfy model download \
