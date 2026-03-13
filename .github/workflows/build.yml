@@ -44,3 +44,5 @@ jobs:
             dreamroca/nuera-comfyui:latest
           platforms: linux/amd64
           no-cache: true
+          build-args: |
+            HF_TOKEN=${{ secrets.HF_TOKEN }}
