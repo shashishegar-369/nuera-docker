@@ -1,13 +1,12 @@
-# NUERA ComfyUI Docker Image v2
-# Based on official RunPod customization guide:
-# https://github.com/runpod-workers/worker-comfyui/blob/main/docs/customization.md
-
+# NUERA ComfyUI Docker Image v2 - Fixed
 FROM runpod/worker-comfyui:5.7.1-base
 
-# Install custom nodes using comfy-node-install (RunPod's own CLI tool)
+# Install custom nodes
 RUN comfy-node-install comfyui_ipadapter_plus
 
-# JuggernautXL v11 checkpoint (~6.5GB)
+# JuggernautXL v11 checkpoint (~6.5GB) - uses HF_TOKEN from build arg
+ARG HF_TOKEN
+ENV HF_API_TOKEN=${HF_TOKEN}
 RUN comfy model download \
   --url https://huggingface.co/RunDiffusion/Juggernaut-XI-v11/resolve/main/juggernautXL_v11.safetensors \
   --relative-path models/checkpoints \
@@ -25,20 +24,22 @@ RUN comfy model download \
   --relative-path models/loras \
   --filename ip-adapter-faceid_sdxl_lora.safetensors
 
-# InsightFace antelopev2 models (~360MB)
+# InsightFace antelopev2 models (curl + install unzip)
 RUN mkdir -p /comfyui/models/insightface/models/antelopev2 && \
-  wget -q -O /tmp/antelopev2.zip \
+  curl -sL -o /tmp/antelopev2.zip \
     "https://huggingface.co/MonsterMMORPG/tools/resolve/main/antelopev2.zip" && \
+  apt-get update && apt-get install -y --no-install-recommends unzip && \
   unzip -o /tmp/antelopev2.zip -d /tmp/antelopev2_extract/ && \
   find /tmp/antelopev2_extract -name "*.onnx" -exec cp {} /comfyui/models/insightface/models/antelopev2/ \; && \
-  rm -rf /tmp/antelopev2.zip /tmp/antelopev2_extract
+  rm -rf /tmp/antelopev2.zip /tmp/antelopev2_extract && \
+  apt-get purge -y unzip && apt-get autoremove -y && rm -rf /var/lib/apt/lists/*
 
-# Verify all files installed correctly
+# Verify
 RUN echo "=== Custom Nodes ===" && \
   ls -la /comfyui/custom_nodes/ && \
   echo "=== Checkpoints ===" && \
   ls -lh /comfyui/models/checkpoints/ && \
-  echo "=== IP-Adapter Models ===" && \
+  echo "=== IP-Adapter ===" && \
   ls -lh /comfyui/models/ipadapter/ && \
   echo "=== LoRAs ===" && \
   ls -lh /comfyui/models/loras/ && \
